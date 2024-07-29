@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using Microsoft.OpenApi.Models;
 
-namespace Workbook.API
+namespace Workbook.API.Functions
 {
     public class TimesheetFunctions
     {
@@ -18,7 +18,7 @@ namespace Workbook.API
         }
 
         [OpenApiOperation(operationId: "getTimesheets", tags: ["timesheets"], Summary = "Get timesheets", Description = "Get all timesheets for a given date range")]
-        [OpenApiParameter("employeeId", Type = typeof(int), In = ParameterLocation.Header, Required = true, Description = "")]
+        [OpenApiParameter("email", Type = typeof(string), In = ParameterLocation.Header, Required = true, Description = "The current user's email address")]
         [OpenApiParameter("fromDate", Type = typeof(string), In = ParameterLocation.Query, Required = true, Description = "")]
         [OpenApiParameter("toDate", Type = typeof(string), In = ParameterLocation.Query, Required = true, Description = "")]
         [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/json", bodyType: typeof(string), Summary = "XXX", Description = "XXX")]
@@ -31,7 +31,7 @@ namespace Workbook.API
 
 
         [OpenApiOperation(operationId: "addTimesheet", tags: ["timesheets"], Summary = "Add timesheet", Description = "Add a timesheet")]
-        [OpenApiParameter("employeeId", Type = typeof(int), In = ParameterLocation.Header, Required = true, Description = "")]
+        [OpenApiParameter("email", Type = typeof(string), In = ParameterLocation.Header, Required = true, Description = "The current user's email address")]
         [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/json", bodyType: typeof(string), Summary = "XXX", Description = "XXX")]
         [Function("Add-Timesheet")]
         public IActionResult AddTimesheet([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "timesheets")] HttpRequest req)
@@ -41,7 +41,7 @@ namespace Workbook.API
         }
 
         [OpenApiOperation(operationId: "updateTimesheet", tags: ["timesheets"], Summary = "Update timesheet", Description = "Update a given timesheet")]
-        [OpenApiParameter("employeeId", Type = typeof(int), In = ParameterLocation.Header, Required = true, Description = "")]
+        [OpenApiParameter("email", Type = typeof(string), In = ParameterLocation.Header, Required = true, Description = "The current user's email address")]
         [OpenApiParameter("id", Type = typeof(int), In = ParameterLocation.Path, Required = true, Description = "")]
         [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/json", bodyType: typeof(string), Summary = "XXX", Description = "XXX")]
         [Function("Update-Timesheet")]
@@ -52,7 +52,7 @@ namespace Workbook.API
         }
 
         [OpenApiOperation(operationId: "completeTimesheet", tags: ["timesheets"], Summary = "Complete timesheet", Description = "Mark a given timesheet as completed")]
-        [OpenApiParameter("employeeId", Type = typeof(int), In = ParameterLocation.Header, Required = true, Description = "")]
+        [OpenApiParameter("email", Type = typeof(string), In = ParameterLocation.Header, Required = true, Description = "The current user's email address")]
         [OpenApiParameter("id", Type = typeof(int), In = ParameterLocation.Path, Required = true, Description = "")]
         [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/json", bodyType: typeof(string), Summary = "XXX", Description = "XXX")]
         [Function("Complete-Timesheet")]
