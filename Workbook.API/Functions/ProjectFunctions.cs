@@ -1,10 +1,10 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System.Net;
+using Workbook.API.Extensions;
 
 namespace Workbook.API.Functions
 {
@@ -21,10 +21,10 @@ namespace Workbook.API.Functions
         [OpenApiParameter("email", Type = typeof(string), In = ParameterLocation.Header, Required = true, Description = "The current user's email address")]
         [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(string), Summary = "XXX", Description = "XXX")]
         [Function("Get-Projects")]
-        public IActionResult GetProjects([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "projects")] HttpRequest req)
+        public async Task<HttpResponseData> GetProjects([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "projects")] HttpRequestData req)
         {
             _logger.LogDebug("Get-Projects called");
-            return new OkObjectResult("");
+            return await req.OkResponse(new List<string>());
         }
     }
 }

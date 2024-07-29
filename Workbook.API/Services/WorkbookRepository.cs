@@ -1,0 +1,37 @@
+﻿using Workbook.API.Models;
+
+namespace Workbook.API.Services
+{
+    public class WorkbookRepository
+    {
+        private List<User> Users { get; set; }
+
+        private readonly WorkbookClient _client;
+
+        public WorkbookRepository(WorkbookClient client)
+        {
+            _client = client;
+            Users = new List<User>();
+        }
+
+        public async Task<User?> GetUser(string email)
+        {
+            var user = Users.FirstOrDefault(x => x.Email == email);
+            if (user != null)
+            {
+                return user;
+            }
+
+            var users = await _client.GetAllUsers();
+            if (users == null)
+            {
+                return user;
+            }
+
+            Users = users;
+            user = Users.FirstOrDefault(x => x.Email == email);
+
+            return user;
+        }
+    }
+}
