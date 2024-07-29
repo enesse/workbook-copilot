@@ -20,10 +20,23 @@ namespace Workbook.API.Services
 
         public async Task<List<User>?> GetAllUsers()
         {
-                var response = await _client.GetAsync("resource/employeesvisualization");
+                var response = await _client.GetAsync("/api/json/reply/ResourceWithEmployeesVisualizationRequest?Active=true");
                 return response.IsSuccessStatusCode
                     ? JsonConvert.DeserializeObject<List<User>>(await response.Content.ReadAsStringAsync())
                     : new List<User>();
+        }
+
+        public async Task<List<Timesheet>> GetTimesheet(int employeeId, DateTime from, DateTime to)
+        {
+            var requestUri = $"/api/json/reply/CapacityDaySummaryRequest?ResourceId={employeeId}&StartDate={from:O}&EndDate={to:O}";
+            var response = await _client.GetAsync(requestUri);
+            if (!response.IsSuccessStatusCode)
+            {
+                return [];
+            }
+
+            var timesheets = JsonConvert.DeserializeObject<List<TimesheetDto>>(await response.Content.ReadAsStringAsync());
+            return (timesheets ?? []).Select(dto => new Timesheet(dto)).ToList();
         }
     }
 }
