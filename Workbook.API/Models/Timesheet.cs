@@ -29,4 +29,23 @@ namespace Workbook.API.Models
         [JsonProperty("TimeEntryIsCompleted")]
         public bool IsCompleted { get; set; }
     }
+
+    public record TimesheetCreate
+    {
+        public int Id { get; set; }
+        public int ActivityId { get; set; }
+        public bool Billable { get; set; }
+        public float Hours { get; set; }
+        public int TaskId { get; set; }
+        public string Description { get; set; }
+    }
+
+    public record TimesheetComplete
+    {
+        public int ResourceId { get; set; }
+        public string RegistrationDate { get; set; }
+        public string RegistrationEndDate { get; set; }
+        public bool ConfirmPolicy { get; set; }
+        public string ApproveDescription { get; set; }
+    }
 }

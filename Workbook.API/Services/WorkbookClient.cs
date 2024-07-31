@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Net.Http.Headers;
+using System.Text;
 using Workbook.API.Configurations;
 using Workbook.API.Models;
 
@@ -46,6 +48,22 @@ namespace Workbook.API.Services
 
             var timesheets = JsonConvert.DeserializeObject<List<TimesheetDto>>(await response.Content.ReadAsStringAsync());
             return (timesheets ?? []).Select(dto => new Timesheet(dto)).ToList();
+        }
+
+        public async Task<bool> CreateTimesheet(TimesheetCreate timesheet)
+        {
+            var stringContent = new StringContent(JsonConvert.SerializeObject(timesheet), Encoding.UTF8, "application/json");
+            var response = await _client.PostAsync("/api/json/reply/TimeEntryUpdateRequest", stringContent);
+
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> CompleteTimesheets(TimesheetComplete timesheet)
+        {
+            var stringContent = new StringContent(JsonConvert.SerializeObject(timesheet), Encoding.UTF8, "application/json");
+            var response = await _client.PostAsync("/api/json/reply/ApproveTimeEntryDayDataRequest", stringContent);
+
+            return response.IsSuccessStatusCode;
         }
     }
 }

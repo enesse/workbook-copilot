@@ -7,6 +7,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Workbook.API.Extensions;
 using Workbook.API.Models;
 using Workbook.API.Services;
+using Newtonsoft.Json;
 
 namespace Workbook.API.Functions
 {
@@ -43,34 +44,39 @@ namespace Workbook.API.Functions
         
         [OpenApiOperation(operationId: "addTimesheet", tags: ["timesheets"], Summary = "Add timesheet", Description = "Add a timesheet")]
         [OpenApiParameter("email", Type = typeof(string), In = ParameterLocation.Header, Required = true, Description = "The current user's email address")]
-        [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(string), Summary = "Returns OK or an error code", Description = "OK if the submitted timesheet is successfully registered in Workbook")]
+        [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(TimesheetCreate), Summary = "Returns OK or an error code", Description = "OK if the submitted timesheet is successfully registered in Workbook")]
         [Function("Add-Timesheet")]
-        public HttpResponseData AddTimesheet([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "timesheets")] HttpRequestData req)
+        public async Task<HttpResponseData> AddTimesheet([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "timesheets")] HttpRequestData req)
         {
             _logger.LogDebug("Add-Timesheet called");
-            return req.OkResponse();
+
+            using var reader = new StreamReader(req.Body);
+            var requestBody = await reader.ReadToEndAsync();
+            var timesheet = JsonConvert.DeserializeObject<TimesheetCreate>(requestBody);
+
+            var result = await _repository.CreateTimesheet(timesheet);
+            return result
+                ? req.OkResponse()
+                : req.CreateResponse(HttpStatusCode.BadRequest);
         }
 
-        [OpenApiOperation(operationId: "updateTimesheet", tags: ["timesheets"], Summary = "Update timesheet", Description = "Update a given timesheet")]
+        [OpenApiOperation(operationId: "completeTimesheets", tags: ["timesheets"], Summary = "Complete timesheets for a specific day", Description = "Mark all timesheets for a specific day as completed")]
         [OpenApiParameter("email", Type = typeof(string), In = ParameterLocation.Header, Required = true, Description = "The current user's email address")]
-        [OpenApiParameter("id", Type = typeof(int), In = ParameterLocation.Path, Required = true, Description = "The ID of the timesheet to update")]
-        [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(string), Summary = "Returns OK or an error code", Description = "OK if the submitted timesheet is successfully updated in Workbook")]
-        [Function("Update-Timesheet")]
-        public HttpResponseData UpdateTimesheet([HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "timesheets/{id}")] HttpRequestData req, int id)
-        {
-            _logger.LogDebug("Update-Timesheet called");
-            return req.OkResponse();
-        }
-
-        [OpenApiOperation(operationId: "completeTimesheet", tags: ["timesheets"], Summary = "Complete timesheet", Description = "Mark a given timesheet as completed")]
-        [OpenApiParameter("email", Type = typeof(string), In = ParameterLocation.Header, Required = true, Description = "The current user's email address")]
-        [OpenApiParameter("id", Type = typeof(int), In = ParameterLocation.Path, Required = true, Description = "The ID of the timesheet to complete")]
+        [OpenApiParameter("date", Type = typeof(string), In = ParameterLocation.Query, Required = true, Description = "The date string for the day to complete timesheets for")]
         [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(string), Summary = "Returns OK or an error code", Description = "OK if the requested timesheet is successfully marked as completed in Workbook")]
-        [Function("Complete-Timesheet")]
-        public HttpResponseData ApproveTimesheet([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "timesheets/{id}/approve")] HttpRequestData req, int id)
+        [Function("Complete-Timesheets")]
+        public async Task<HttpResponseData> CompleteTimesheets([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "timesheets/complete")] HttpRequestData req)
         {
-            _logger.LogDebug("Complete-Timesheet called");
-            return req.OkResponse();
+            _logger.LogDebug("Complete-Timesheets called");
+
+            var date = DateTime.Parse(req.Query.GetValues("date")[0]);
+            var email = req.GetEmail();
+            var user = await _repository.GetUser(email);
+
+            var completed = await _repository.CompleteTimesheets(user.Id, date);
+            return completed 
+                ? req.OkResponse() 
+                : req.CreateResponse(HttpStatusCode.BadRequest);
         }
     }
 }

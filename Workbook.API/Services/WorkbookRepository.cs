@@ -43,5 +43,25 @@ namespace Workbook.API.Services
         {
             return await _client.GetTimesheet(userId, from, to);
         }
+
+        public async Task<bool> CreateTimesheet(TimesheetCreate timesheet)
+        {
+            return await _client.CreateTimesheet(timesheet);
+        }
+
+        public async Task<bool> CompleteTimesheets(int userId, DateTime day)
+        {
+            var utcFormattedDay = day.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+            var timesheet = new TimesheetComplete
+            {
+                ApproveDescription = "",
+                ConfirmPolicy = true,
+                RegistrationDate = utcFormattedDay,
+                RegistrationEndDate = utcFormattedDay,
+                ResourceId = userId
+            };
+
+            return await _client.CompleteTimesheets(timesheet);
+        }
     }
 }
