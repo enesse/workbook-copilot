@@ -34,6 +34,11 @@ namespace Workbook.API.Services
             return user;
         }
 
+        public async Task<List<Project>> GetProjects(int userId)
+        {
+            return await _client.GetProjects(userId);
+        }
+
         public async Task<List<Timesheet>> GetTimesheet(int userId, DateTime from, DateTime to)
         {
             return await _client.GetTimesheet(userId, from, to);
